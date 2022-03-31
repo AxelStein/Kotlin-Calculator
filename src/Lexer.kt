@@ -2,16 +2,8 @@ class Lexer(private val text: String) {
     private var pos = 0
     private val buffer = StringBuilder()
 
-    private fun hasNextChar(): Boolean {
-        return pos + 1 < text.length
-    }
-
-    private fun getNextChar(): Char {
-        return text[pos + 1]
-    }
-
-    private fun nextCharIsDigit(): Boolean {
-        return hasNextChar() && getNextChar().isDigit()
+    fun hasNextToken(): Boolean {
+        return peekNextToken() !is TokenEOL
     }
 
     fun peekNextToken(): Token {
@@ -24,53 +16,40 @@ class Lexer(private val text: String) {
     fun nextToken(): Token {
         val symbols = listOf('+', '-', '*', '/')
         while (pos < text.length) {
-            val char = text[pos]
+            val char = text[pos++]
             if (char.isWhitespace()) {
-                pos++
                 continue
             }
             if (char.isDigit()) {
                 buffer.append(char)
-                if (nextCharIsDigit()) {
-                    pos++
+                if (charIsDigit()) {
                     continue
                 } else {
-                    return IntToken(buffer.toString().toInt()).also {
+                    return TokenInt(buffer.toString().toInt()).also {
                         buffer.setLength(0)
-                        pos++
                     }
                 }
             }
             if (char in symbols) {
-                return SymbolToken(char)
+                return TokenSymbol(char)
             }
-            pos++
         }
-        return Token(TokenType.EOL)
+        return TokenEOL()
+    }
+
+    private fun charIsDigit(): Boolean {
+        return pos < text.length && text[pos].isDigit()
+    }
+
+    fun pop() {
+        pos++
     }
 }
 
-open class Token(val type: TokenType) {
-    override fun toString(): String {
-        return type.toString()
-    }
-}
+interface Token
 
-class IntToken(val value: Int) : Token(TokenType.INT) {
-    override fun toString(): String {
-        return value.toString()
-    }
-}
+data class TokenInt(val value: Int) : Token
 
+data class TokenSymbol(val value: Char) : Token
 
-class SymbolToken(val value: Char) : Token(TokenType.SYMBOL) {
-    override fun toString(): String {
-        return value.toString()
-    }
-}
-
-enum class TokenType {
-    INT,
-    SYMBOL,
-    EOL,
-}
+class TokenEOL : Token
