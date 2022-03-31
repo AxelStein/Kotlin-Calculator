@@ -1,4 +1,5 @@
 fun main(args: Array<String>) {
-    val result = Parser(Lexer("2 + 2 * 2 * 3 - 2")).parse()
+    val lexer = Lexer("2 + 2 * 2 + 11 * 3 - 2 / 2")
+    val result = Parser(lexer).parse()
     println(result)
 }

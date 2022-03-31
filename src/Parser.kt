@@ -1,64 +1,46 @@
 class Parser(private val lexer: Lexer) {
-    fun parse(): Int {
-        return parseExpression()
-    }
-
-    private val symbolPriorityMap = mapOf(
-  '+' to 1,
-        '-' to 1,
-        '*' to 2,
-        '/' to 2
+    private val priorityMap = mapOf('+' to 1,
+            '-' to 1,
+            '*' to 2,
+            '/' to 2
     )
 
-    private fun getSymbolPriority(token: Token): Int {
-        if (token is TokenSymbol) {
-            return symbolPriorityMap[token.value]!!
+    fun parse(): Int {
+        return parseExpression(0)
+    }
+
+    private fun parseExpression(priority: Int): Int {
+        var result = parseItem(lexer.nextToken())
+        while (getSymbolPriority(lexer.peekNextToken()) > priority) {
+            result = parseTerm(result, lexer.nextToken())
+        }
+        return result
+    }
+
+    private fun parseTerm(left: Int, token: Token): Int {
+        val priority = getSymbolPriority(token)
+        token as TokenSymbol
+        val right = parseExpression(priority)
+        return when (token.value) {
+            '+' -> left + right
+            '-' -> left - right
+            '*' -> left * right
+            '/' -> left / right
+            else -> throw Exception()
+        }
+    }
+
+    private fun parseItem(token: Token): Int {
+        if (token is TokenInt) {
+            return token.value
         }
         return 0
     }
 
-    private fun parseExpression(): Int {
-        var result = parseTerm()
-        var token = lexer.peekNextToken()
-        while (getSymbolPriority(token) == 1) {
-            token as TokenSymbol
-            lexer.nextToken()
-
-            val n = parseTerm()
-            if (token.value == '+') {
-                result += n
-            } else {
-                result -= n
-            }
-            token = lexer.peekNextToken()
+    private fun getSymbolPriority(token: Token): Int {
+        if (token is TokenSymbol) {
+            return priorityMap[token.value]!!
         }
-        return result
-    }
-
-    private fun parseTerm(): Int {
-        var result = parseItem()
-        var token = lexer.peekNextToken()
-        while (getSymbolPriority(token) == 2) {
-            token as TokenSymbol
-            lexer.nextToken()
-
-            val n = parseItem()
-            if (token.value == '*') {
-                result *= n
-            } else {
-                result /= n
-            }
-            token = lexer.peekNextToken()
-        }
-        return result
-    }
-
-    private fun parseItem(): Int {
-        val token = lexer.peekNextToken()
-        if (token is TokenInt) {
-            lexer.nextToken()
-            return token.value
-        }
-        return parseExpression()
+        return 0
     }
 }
