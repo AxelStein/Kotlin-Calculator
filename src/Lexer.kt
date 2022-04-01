@@ -14,11 +14,16 @@ class Lexer(private val text: String) {
     }
 
     fun nextToken(): Token {
-        val symbols = listOf('+', '-', '*', '/')
+        val symbols = listOf('+', '-', '*', '/', '=')
+        var isVar = false
         while (pos < text.length) {
             val char = text[pos++]
             if (char.isWhitespace()) {
                 continue
+            }
+            if (char.isLetter()) {
+                isVar = true
+                buffer.append(char)
             }
             if (char.isDigit()) {
                 buffer.append(char)
@@ -27,7 +32,7 @@ class Lexer(private val text: String) {
                 } else if (charIsPoint()) {
                     buffer.append(getChar())
                     continue
-                } else {
+                } else if (!isVar) {
                     val s = buffer.toString()
                     buffer.setLength(0)
                     return if (s.contains('.')) {
@@ -38,7 +43,12 @@ class Lexer(private val text: String) {
                 }
             }
             if (char in symbols) {
-                return TokenSymbol(char)
+                return TokenOperator(char)
+            }
+            if (!getChar().isLetterOrDigit() && isVar) {
+                val s = buffer.toString()
+                buffer.setLength(0)
+                return TokenVar(s)
             }
         }
         return TokenEOL()
@@ -63,6 +73,8 @@ data class TokenInt(val value: Int) : Token
 
 data class TokenFloat(val value: Float): Token
 
-data class TokenSymbol(val value: Char) : Token
+data class TokenOperator(val value: Char) : Token
+
+data class TokenVar(val value: String) : Token
 
 class TokenEOL : Token

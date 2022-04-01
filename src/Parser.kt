@@ -11,16 +11,16 @@ class Parser(private val lexer: Lexer) {
 
     private fun parseExpression(priority: Int): Float {
         var result = parseItem(lexer.nextToken())
-        while (getSymbolPriority(lexer.peekNextToken()) > priority) {
+        while (getOperatorPriority(lexer.peekNextToken()) > priority) {
             result = parseTerm(result, lexer.nextToken())
         }
         return result
     }
 
     private fun parseTerm(left: Float, token: Token): Float {
-        val priority = getSymbolPriority(token)
+        val priority = getOperatorPriority(token)
         val right = parseExpression(priority)
-        token as TokenSymbol
+        token as TokenOperator
         return when (token.value) {
             '+' -> left + right
             '-' -> left - right
@@ -31,7 +31,7 @@ class Parser(private val lexer: Lexer) {
     }
 
     private fun parseItem(token: Token): Float {
-        if (token is TokenSymbol) {
+        if (token is TokenOperator) {
             if (token.value == '-') {
                 val nextToken = lexer.peekNextToken()
                 if (nextToken.isInt() || nextToken.isFloat()) {
@@ -58,9 +58,9 @@ class Parser(private val lexer: Lexer) {
 
     private fun Token.isFloat() = this is TokenFloat
 
-    private fun getSymbolPriority(token: Token): Int {
-        if (token is TokenSymbol) {
-            return priorityMap[token.value]!!
+    private fun getOperatorPriority(token: Token): Int {
+        if (token is TokenOperator) {
+            return priorityMap[token.value] ?: 0
         }
         return 0
     }
