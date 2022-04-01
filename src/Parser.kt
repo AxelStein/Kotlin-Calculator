@@ -30,33 +30,24 @@ class Parser(private val lexer: Lexer) {
         }
     }
 
-    private fun parseItem(token: Token): Float {
+    private fun parseItem(token: Token, isNegative: Boolean = false): Float {
         if (token is TokenOperator) {
             if (token.value == '-') {
-                val nextToken = lexer.peekNextToken()
-                if (nextToken.isInt() || nextToken.isFloat()) {
-                    lexer.nextToken()
-                    if (nextToken is TokenInt) {
-                        return nextToken.value.toFloat() * -1f
-                    }
-                    if (nextToken is TokenFloat) {
-                        return nextToken.value * -1f
-                    }
-                }
+                return parseItem(lexer.nextToken(), true)
             }
         }
+        var result = 0f
         if (token is TokenInt) {
-            return token.value.toFloat()
+            result = token.value.toFloat()
         }
         if (token is TokenFloat) {
-            return token.value
+            result = token.value
         }
-        return 0f
+        if (isNegative) {
+            result *= -1f
+        }
+        return result
     }
-
-    private fun Token.isInt() = this is TokenInt
-
-    private fun Token.isFloat() = this is TokenFloat
 
     private fun getOperatorPriority(token: Token): Int {
         if (token is TokenOperator) {
