@@ -1,5 +1,8 @@
 fun main(args: Array<String>) {
-    val lexer = Lexer("-2 + 2.5 * -2.3 + 11 * -3 - 2 / -2")
-    val result = Parser(lexer).parse()
-    println(result)
+    while (true) {
+        print(">>> ")
+        val lexer = Lexer(readLine()!!)
+        val result = Parser(lexer).parse()
+        println(result)
+    }
 }
