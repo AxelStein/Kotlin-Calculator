@@ -2,10 +2,6 @@ class Lexer(private val text: String) {
     private var pos = 0
     private val buffer = StringBuilder()
 
-    fun hasNextToken(): Boolean {
-        return peekNextToken() !is TokenEOL
-    }
-
     fun peekNextToken(): Token {
         val p = pos
         val token = nextToken()
@@ -39,10 +35,6 @@ class Lexer(private val text: String) {
 
     private fun charIsDigit(): Boolean {
         return pos < text.length && text[pos].isDigit()
-    }
-
-    fun pop() {
-        pos++
     }
 }
 

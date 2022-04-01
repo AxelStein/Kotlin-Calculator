@@ -1,3 +1,5 @@
+import com.sun.org.apache.xpath.internal.operations.Bool
+
 class Parser(private val lexer: Lexer) {
     private val priorityMap = mapOf('+' to 1,
             '-' to 1,
@@ -19,8 +21,8 @@ class Parser(private val lexer: Lexer) {
 
     private fun parseTerm(left: Int, token: Token): Int {
         val priority = getSymbolPriority(token)
-        token as TokenSymbol
         val right = parseExpression(priority)
+        token as TokenSymbol
         return when (token.value) {
             '+' -> left + right
             '-' -> left - right
@@ -31,6 +33,15 @@ class Parser(private val lexer: Lexer) {
     }
 
     private fun parseItem(token: Token): Int {
+        if (token is TokenSymbol) {
+            if (token.value == '-') {
+                val nextToken = lexer.peekNextToken()
+                if (nextToken is TokenInt) {
+                    lexer.nextToken()
+                    return nextToken.value * -1
+                }
+            }
+        }
         if (token is TokenInt) {
             return token.value
         }
