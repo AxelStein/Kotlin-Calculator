@@ -2,6 +2,10 @@ class Lexer(private val text: String) {
     private var pos = 0
     private val buffer = StringBuilder()
 
+    fun hasNextToken(): Boolean {
+        return peekNextToken() !is TokenEOL
+    }
+
     fun peekNextToken(): Token {
         val p = pos
         val token = nextToken()
@@ -20,9 +24,16 @@ class Lexer(private val text: String) {
                 buffer.append(char)
                 if (charIsDigit()) {
                     continue
+                } else if (charIsPoint()) {
+                    buffer.append(getChar())
+                    continue
                 } else {
-                    return TokenInt(buffer.toString().toInt()).also {
-                        buffer.setLength(0)
+                    val s = buffer.toString()
+                    buffer.setLength(0)
+                    return if (s.contains('.')) {
+                        TokenFloat(s.toFloat())
+                    } else {
+                        TokenInt(s.toInt())
                     }
                 }
             }
@@ -34,13 +45,23 @@ class Lexer(private val text: String) {
     }
 
     private fun charIsDigit(): Boolean {
-        return pos < text.length && text[pos].isDigit()
+        return hasChar() && getChar().isDigit()
     }
+
+    private fun charIsPoint(): Boolean {
+        return hasChar() && getChar() == '.'
+    }
+
+    private fun hasChar() = pos < text.length
+
+    private fun getChar() = text[pos]
 }
 
 interface Token
 
 data class TokenInt(val value: Int) : Token
+
+data class TokenFloat(val value: Float): Token
 
 data class TokenSymbol(val value: Char) : Token
 
